@@ -138,6 +138,28 @@ function formatResponses(responses: ResponseItem[]): string {
 		.join("\n");
 }
 
+function hasAnyAnswers(responses: ResponseItem[]): boolean {
+	if (!responses || responses.length === 0) return false;
+	return responses.some((resp) => {
+		if (!resp || resp.value == null) return false;
+		if (Array.isArray(resp.value)) {
+			return resp.value.some((v) => typeof v === "string" && v.trim() !== "");
+		}
+		return typeof resp.value === "string" && resp.value.trim() !== "";
+	});
+}
+
+function filterAnsweredResponses(responses: ResponseItem[]): ResponseItem[] {
+	if (!responses) return [];
+	return responses.filter((resp) => {
+		if (!resp || resp.value == null) return false;
+		if (Array.isArray(resp.value)) {
+			return resp.value.some((v) => typeof v === "string" && v.trim() !== "");
+		}
+		return typeof resp.value === "string" && resp.value.trim() !== "";
+	});
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "interview",
@@ -217,11 +239,19 @@ export default function (pi: ExtensionAPI) {
 						if (cancelReason === "stale") {
 							text =
 								"Interview session ended due to lost heartbeat.\n\nQuestions saved to: ~/.pi/interview-recovery/";
+						} else if (hasAnyAnswers(responses)) {
+							const answered = filterAnsweredResponses(responses);
+							text = `User cancelled the interview with partial responses:\n${formatResponses(answered)}\n\nProceed with these inputs and use your best judgment for unanswered questions.`;
 						} else {
-							text = "User cancelled the interview form.";
+							text = "User skipped the interview without providing answers. Proceed with your best judgment - use recommended options where specified, make reasonable choices elsewhere. Don't ask for clarification unless absolutely necessary.";
 						}
 					} else if (status === "timeout") {
-						text = `Interview form timed out after ${timeoutSeconds} seconds.\n\nQuestions saved to: ~/.pi/interview-recovery/`;
+						if (hasAnyAnswers(responses)) {
+							const answered = filterAnsweredResponses(responses);
+							text = `Interview form timed out after ${timeoutSeconds} seconds.\n\nPartial responses before timeout:\n${formatResponses(answered)}\n\nQuestions saved to: ~/.pi/interview-recovery/\n\nProceed with these inputs and use your best judgment for unanswered questions.`;
+						} else {
+							text = `Interview form timed out after ${timeoutSeconds} seconds.\n\nQuestions saved to: ~/.pi/interview-recovery/`;
+						}
 					} else {
 						text = "Interview was aborted.";
 					}
@@ -248,8 +278,10 @@ export default function (pi: ExtensionAPI) {
 					},
 					{
 						onSubmit: (responses) => finish("completed", responses),
-						onCancel: (reason) =>
-							reason === "timeout" ? finish("timeout") : finish("cancelled", [], reason),
+						onCancel: (reason, partialResponses) =>
+							reason === "timeout"
+								? finish("timeout", partialResponses ?? [])
+								: finish("cancelled", partialResponses ?? [], reason),
 					}
 				)
 					.then(async (handle) => {

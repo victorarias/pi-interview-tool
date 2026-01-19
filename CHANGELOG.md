@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.2 - 2026-01-18
+
+### Changed
+- **Skip-friendly cancel behavior**: When user cancels/dismisses the interview, the tool now returns context-aware messages:
+  - No answers provided → "User skipped the interview without providing answers. Proceed with your best judgment - use recommended options where specified, make reasonable choices elsewhere. Don't ask for clarification unless absolutely necessary."
+  - Partial answers provided → "User cancelled the interview with partial responses: [responses]. Proceed with these inputs and use your best judgment for unanswered questions."
+- **Timeout preserves partial answers**: If the interview times out with partial responses, they're now included in the result message
+- Cancel and timeout requests now include current form responses so the agent can use partial input
+
+---
+
 ## 0.3.1 - 2026-01-17
 
 ### Changed

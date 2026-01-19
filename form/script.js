@@ -323,7 +323,8 @@
   function sendCancelBeacon(reason) {
     if (session.cancelSent || session.ended) return;
     session.cancelSent = true;
-    const payload = JSON.stringify({ token: sessionToken, reason });
+    const responses = collectResponses();
+    const payload = JSON.stringify({ token: sessionToken, reason, responses });
     if (navigator.sendBeacon) {
       const blob = new Blob([payload], { type: "application/json" });
       navigator.sendBeacon("/cancel", blob);
@@ -343,11 +344,12 @@
     session.cancelSent = true;
     stopHeartbeat();
     stopQueuePolling();
+    const responses = collectResponses();
     try {
       await fetch("/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: sessionToken, reason }),
+        body: JSON.stringify({ token: sessionToken, reason, responses }),
       });
     } catch (_err) {}
   }

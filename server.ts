@@ -196,7 +196,7 @@ export interface InterviewServerOptions {
 
 export interface InterviewServerCallbacks {
 	onSubmit: (responses: ResponseItem[]) => void;
-	onCancel: (reason?: "timeout" | "user" | "stale") => void;
+	onCancel: (reason?: "timeout" | "user" | "stale", partialResponses?: ResponseItem[]) => void;
 }
 
 export interface InterviewServerHandle {
@@ -563,7 +563,8 @@ export async function startInterviewServer(
 					sendJson(res, 200, { ok: true });
 					return;
 				}
-				const reason = (body as { reason?: string }).reason;
+				const payload = body as { reason?: string; responses?: ResponseItem[] };
+				const reason = payload.reason;
 				if (reason === "timeout" || reason === "stale") {
 					const recoveryPath = saveToRecovery(questions, cwd, gitBranch, sessionId);
 					const label = reason === "timeout" ? "timed out" : "stale";
@@ -572,7 +573,8 @@ export async function startInterviewServer(
 				markCompleted();
 				unregisterSession(sessionId);
 				sendJson(res, 200, { ok: true });
-				setImmediate(() => callbacks.onCancel(reason));
+				const partialResponses = Array.isArray(payload.responses) ? payload.responses : undefined;
+				setImmediate(() => callbacks.onCancel(reason as "timeout" | "user" | "stale" | undefined, partialResponses));
 				return;
 			}
 
