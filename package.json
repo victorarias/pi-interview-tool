@@ -1,6 +1,6 @@
 {
   "name": "pi-interview",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Interactive interview form extension for pi coding agent",
   "author": "Nico Bailon",
   "license": "MIT",
@@ -30,6 +30,8 @@
     "README.md"
   ],
   "pi": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
   }
 }
