@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-02-01
+
+### Fixed
+- Adapt execute signature to pi v0.51.0: reorder signal, onUpdate, ctx parameters
+
 ## [0.4.4] - 2026-01-27
 
 ### Fixed

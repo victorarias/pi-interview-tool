@@ -278,7 +278,7 @@ export default function (pi: ExtensionAPI) {
 			"Questions can have a codeBlock field to display code above options. Types: single (radio), multi (checkbox), text (textarea), image (file upload).",
 		parameters: InterviewParams,
 
-		async execute(_toolCallId, params, onUpdate, ctx, signal) {
+		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			const { questions, timeout, verbose, theme } = params as {
 				questions: string;
 				timeout?: number;
