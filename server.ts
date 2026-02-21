@@ -1,6 +1,6 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
-import { tmpdir, homedir } from "node:os";
+import { tmpdir, homedir, hostname } from "node:os";
 import { join, dirname, basename, resolve } from "node:path";
 import { readFileSync, existsSync, mkdirSync, readdirSync, unlinkSync, renameSync, writeFileSync } from "node:fs";
 import { mkdir, writeFile, copyFile } from "node:fs/promises";
@@ -1287,14 +1287,15 @@ export async function startInterviewServer(
 		};
 
 		server.once("error", onError);
-		server.listen(port ?? 0, "127.0.0.1", () => {
+		server.listen(port ?? 0, "0.0.0.0", () => {
 			server.off("error", onError);
 			const addr = server.address();
 			if (!addr || typeof addr === "string") {
 				reject(new Error("Failed to start server: invalid address"));
 				return;
 			}
-			const url = `http://localhost:${addr.port}/?session=${sessionToken}`;
+			const host = hostname() || "localhost";
+			const url = `http://${host}:${addr.port}/?session=${sessionToken}`;
 			cleanupOldRecoveryFiles();
 			const now = Date.now();
 			sessionEntry = {
